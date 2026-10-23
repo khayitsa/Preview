@@ -1,0 +1,47 @@
+/* Dark theme overrides. */
+.dark {
+  --bg: #181720;
+  --surface: #22212d;
+  --surface2: #2c2a39;
+  --text: #eeecf7;
+  --muted: #a19cb4;
+  --line: #353243;
+  --purple: #a393ff;
+  --purple-soft: #383052;
+  --green: #84d7ae;
+  --green-soft: #233e34;
+  --red: #f195a1;
+  color-scheme: dark;
+}
+.dark .auth-art {
+  background: #282138;
+}
+.dark .auth-art .orb {
+  border-color: #3c3155;
+}
+.dark .media {
+  background: #16151e;
+}
+.dark .media iframe {
+  background: white;
+}
+.dark button.primary {
+  background: #7560df;
+  color: white;
+}
+.dark .pill.review {
+  background: #493a22;
+  color: #f0c77b;
+}
+.dark .pill.changes,
+.dark .pill.rejected {
+  background: #4b2b36;
+  color: #f195a1;
+}
+.dark .version-alert {
+  background: #493a22;
+  color: #f0c77b;
+}
+.dark .tip p {
+  color: #c2b4ef;
+}

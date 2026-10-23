@@ -1,0 +1,164 @@
+/* Design tokens (:root), reset, buttons, form controls and utility classes. */
+:root {
+  --bg: #f6f5fa;
+  --surface: #fff;
+  --surface2: #f2f1f7;
+  --text: #242239;
+  --muted: #858297;
+  --line: #e9e7f0;
+  --purple: #6b58df;
+  --purple-soft: #eeeafd;
+  --green: #247e5b;
+  --green-soft: #e7f6ee;
+  --red: #bd4655;
+  --shadow: 0 14px 45px #30245a0a;
+  --radius: 18px;
+  color-scheme: light;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-size: 14px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #b2a4ff;
+  outline-offset: 3px;
+}
+a {
+  color: var(--purple);
+}
+button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition:
+    background 0.12s,
+    transform 0.12s;
+}
+button:hover {
+  background: var(--surface2);
+}
+button.primary {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: white;
+}
+button.primary:hover {
+  filter: brightness(1.07);
+}
+button.green {
+  background: var(--green-soft);
+  color: var(--green);
+  border-color: transparent;
+}
+button.danger {
+  color: var(--red);
+}
+button.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+button.small {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+input,
+select,
+textarea {
+  color: var(--text);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 11px 12px;
+  width: 100%;
+  outline: none;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--purple);
+}
+input[type='checkbox'] {
+  width: auto;
+  accent-color: var(--purple);
+}
+input[type='color'] {
+  width: 56px;
+  height: 40px;
+  padding: 3px;
+}
+textarea {
+  resize: vertical;
+  min-height: 110px;
+  line-height: 1.6;
+}
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 16px 0 7px;
+}
+.muted {
+  color: var(--muted);
+}
+.tiny {
+  font-size: 11px;
+}
+.smalltext {
+  font-size: 12px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.spread {
+  justify-content: space-between;
+}
+.wrap {
+  flex-wrap: wrap;
+}
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+.stack {
+  display: grid;
+  gap: 14px;
+}
+.hidden {
+  display: none !important;
+}

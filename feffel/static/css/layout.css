@@ -1,0 +1,218 @@
+/* App shell: sidebar, top bar, page header, metrics, view and platform tabs. */
+.app-layout {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 32px 20px 18px;
+  position: fixed;
+  width: 232px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+.sidebar .brandword {
+  margin-left: 7px;
+}
+.workspace {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 30px 0 24px;
+}
+.workspace select {
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 650;
+  background: none;
+}
+.nav-label {
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 10px 12px;
+}
+.nav-button {
+  border: 0;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  width: 100%;
+  margin: 3px 0;
+  padding: 12px;
+  color: var(--muted);
+  font-weight: 550;
+}
+.nav-button.active {
+  color: var(--purple);
+  background: var(--purple-soft);
+}
+.nav-button .count {
+  margin-left: auto;
+  font-size: 10px;
+  border-radius: 5px;
+  background: var(--purple);
+  color: white;
+  padding: 3px 6px;
+}
+.nav-icon {
+  width: 20px;
+  font-size: 17px;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.main {
+  grid-column: 2;
+  min-width: 0;
+}
+.topbar {
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.breadcrumb {
+  color: var(--muted);
+  font-size: 12px;
+}
+.breadcrumb strong {
+  color: var(--text);
+  font-weight: 550;
+}
+.topbar .search {
+  width: 240px;
+  background: var(--bg);
+  font-size: 12px;
+}
+.page {
+  padding: 30px 36px;
+  max-width: 1500px;
+  margin: auto;
+}
+.page-title {
+  font-size: 28px;
+  letter-spacing: -0.8px;
+  font-weight: 720;
+  margin: 0 0 7px;
+}
+.intro {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.6;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.metric strong {
+  font-size: 25px;
+  font-weight: 700;
+  display: block;
+  letter-spacing: -0.5px;
+  margin-top: 8px;
+}
+.metric small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.metric-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--purple-soft);
+  color: var(--purple);
+  font-size: 18px;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+}
+.controls select {
+  width: 180px;
+  background: var(--surface);
+}
+.view-tabs {
+  margin-left: auto;
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 10px;
+}
+.view-tabs button {
+  padding: 7px 12px;
+  border: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.view-tabs button.active {
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+.platform-tabs {
+  display: flex;
+  gap: 8px;
+  overflow: auto;
+  padding: 0 0 18px;
+  scrollbar-width: thin;
+}
+.platform-tab {
+  border: 1px solid transparent;
+  color: var(--muted);
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 9px 12px;
+}
+.platform-tab.active {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+  box-shadow: 0 2px 5px #32274e04;
+}
+.platform-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  width: 22px;
+  height: 22px;
+}

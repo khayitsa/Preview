@@ -1,0 +1,13 @@
+{
+  "name": "feffel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portable social content review workspace",
+  "scripts": {
+    "dev": "flask --app wsgi run --debug --port 8000",
+    "test": "python3 -m unittest discover -s tests -v",
+    "check": "for f in feffel/static/js/*.js; do node --check \"$f\" || exit 1; done",
+    "format": "prettier --write feffel/static feffel/templates tools",
+    "preview": "node tools/build-preview.mjs"
+  }
+}

@@ -1,0 +1,10 @@
+*.pyc
+*.sqlite3*
+.coverage
+.env
+.ruff_cache/
+.venv/
+__pycache__/
+data/
+node_modules/
+static/qa*

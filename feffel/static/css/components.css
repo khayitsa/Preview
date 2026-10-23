@@ -1,0 +1,77 @@
+/* Small shared components: pills, avatars, brand mark. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface2);
+  color: var(--muted);
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 650;
+  padding: 5px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.pill.review {
+  background: #fff2d8;
+  color: #9d6a17;
+}
+.pill.approved,
+.pill.published {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.pill.changes,
+.pill.rejected {
+  background: #fcebed;
+  color: var(--red);
+}
+.pill.draft {
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--purple-soft);
+  color: var(--purple);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.avatar.brand {
+  border-radius: 11px;
+  color: white;
+  background: var(--purple);
+}
+.avatar.large {
+  width: 78px;
+  height: 78px;
+  font-size: 28px;
+  border: 4px solid var(--surface);
+}
+.brandword {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+}
+.brandword i {
+  font-style: normal;
+  color: var(--purple);
+}
+.logoicon {
+  width: 34px;
+  height: 34px;
+  background: var(--purple);
+  border-radius: 11px;
+  color: white;
+  font-size: 29px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}

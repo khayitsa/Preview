@@ -1,0 +1,81 @@
+/* Sign-in and sign-up screens and inline errors. */
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+.auth-art {
+  background: #ede9fb;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+.auth-art h1 {
+  font-size: 60px;
+  line-height: 1.1;
+  letter-spacing: -3px;
+  max-width: 520px;
+  font-weight: 700;
+  z-index: 1;
+}
+.auth-art h1 em {
+  color: var(--purple);
+  font-style: normal;
+}
+.auth-art p {
+  color: #7c7297;
+  line-height: 1.8;
+  max-width: 370px;
+  z-index: 1;
+}
+.auth-art .orb {
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  bottom: -200px;
+  right: -180px;
+  border: 80px solid #d8d0f6;
+  border-radius: 50%;
+}
+.auth-box {
+  max-width: 400px;
+  width: 100%;
+  margin: auto;
+  padding: 40px 20px;
+}
+.auth-box h2 {
+  font-size: 29px;
+  letter-spacing: -1px;
+  margin: 0 0 10px;
+}
+.auth-box form {
+  margin-top: 24px;
+}
+.auth-box .primary {
+  width: 100%;
+  margin-top: 24px;
+  padding: 13px;
+}
+.auth-box .auth-switch {
+  margin-top: 22px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.auth-switch button {
+  border: 0;
+  color: var(--purple);
+  background: none;
+  padding: 0;
+  font-weight: 600;
+}
+.error {
+  background: #fcebed;
+  color: var(--red);
+  padding: 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  margin: 12px 0;
+}

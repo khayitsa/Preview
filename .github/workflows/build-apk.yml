@@ -1,0 +1,29 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ['android/**', '.github/workflows/build-apk.yml']
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Build debug APK
+        working-directory: android
+        env:
+          # Repo > Settings > Secrets and variables > Actions > Variables > FEFFEL_URL
+          FEFFEL_URL: ${{ vars.FEFFEL_URL }}
+        run: |
+          test -n "$FEFFEL_URL" || { echo "Set the FEFFEL_URL repository variable (https://you.pythonanywhere.com)"; exit 1; }
+          ./gradlew --no-daemon assembleDebug -PfeffelUrl="$FEFFEL_URL"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Feffel-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

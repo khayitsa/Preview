@@ -1,0 +1,109 @@
+/* Modal dialogs, form grid, dropzone and upload list. */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: #1c163a70;
+  backdrop-filter: blur(5px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  max-height: 94vh;
+  overflow: auto;
+  width: 620px;
+  box-shadow: 0 30px 100px #0003;
+}
+.modal.wide {
+  width: 1120px;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 5;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+}
+.modal-body {
+  padding: 24px;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--line);
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  z-index: 5;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+.dropzone {
+  border: 1px dashed #c9c1e8;
+  padding: 25px;
+  border-radius: 14px;
+  background: var(--bg);
+  text-align: center;
+  color: var(--muted);
+  margin: 14px 0;
+  cursor: pointer;
+}
+.dropzone:hover,
+.dropzone.drag {
+  border-color: var(--purple);
+  background: var(--purple-soft);
+}
+.upload-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.upload-item {
+  width: 95px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.upload-item img,
+.upload-item video {
+  width: 95px;
+  height: 85px;
+  object-fit: cover;
+}
+.upload-item .file-name {
+  font-size: 9px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 6px;
+}
+.upload-item button {
+  font-size: 9px;
+  padding: 3px 5px;
+}
+.upload-item .actions {
+  display: flex;
+  justify-content: space-around;
+  padding-bottom: 5px;
+}

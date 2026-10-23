@@ -1,0 +1,20 @@
+[Unit]
+Description=Feffel content review workspace
+After=network.target
+
+[Service]
+Type=simple
+User=feffel
+Group=feffel
+WorkingDirectory=/opt/feffel
+EnvironmentFile=/etc/feffel.env
+ExecStart=/opt/feffel/.venv/bin/gunicorn --bind 127.0.0.1:8000 --workers 2 --threads 4 --timeout 180 wsgi:application
+Restart=on-failure
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/feffel-data
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

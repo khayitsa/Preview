@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Where the app points. Trailing slash is normalised below.
+def feffelUrl = (project.findProperty('feffelUrl') ?: 'https://CHANGE-ME.pythonanywhere.com').toString()
+if (!feffelUrl.endsWith('/')) feffelUrl += '/'
+
+android {
+    namespace 'app.feffel.mobile'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'app.feffel.mobile'
+        minSdk 29          // Android 10+, lets downloads use MediaStore with no storage permission
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+        buildConfigField 'String', 'FEFFEL_URL', "\"${feffelUrl}\""
+        // Plain http:// is only allowed when you point the app at one (e.g. a LAN test server).
+        manifestPlaceholders = [usesCleartext: feffelUrl.startsWith('http://') ? 'true' : 'false']
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

@@ -1,0 +1,11 @@
+line-length = 110
+target-version = "py312"
+exclude = ["data", "node_modules"]
+
+[lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = ["E701", "E702", "E731"]
+per-file-ignores = { "tests/test_app.py" = ["E", "B", "I"] }
+
+[format]
+quote-style = "single"

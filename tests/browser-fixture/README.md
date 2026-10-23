@@ -1,0 +1,1 @@
+These are fictional, read-only UI fixtures. The root Feffel-preview.html embeds them with the actual interface code. They are never loaded by the real application. Integration tests exercise the authenticated backend separately.
