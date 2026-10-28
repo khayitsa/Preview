@@ -307,6 +307,7 @@ function tasksPanel(p) {
               ><select name="assignee">
                 <option value="">Unassigned</option>
                 ${S.data.members
+                  .filter(m => canSeePost(m, p))
                   .map(m => html`<option value="${m.user}">${esc(m.name)}</option>`)
                   .join('')}
               </select>

@@ -9,7 +9,7 @@ import json
 import unittest
 import zipfile
 
-from test_app import PNG, Client
+from test_app import PNG, Client, app
 
 from feffel.util import uid
 
@@ -466,3 +466,55 @@ class AdminTests(Base):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class HardeningTests(Base):
+    """Regressions found in a bug hunt: request limits, sign-in throttling, undo and bad input types."""
+
+    def test_chunked_body_over_the_limit_is_refused(self):
+        big = io.BytesIO(b'{"email":"' + b'a' * (3 * 1024 * 1024) + b'"}')
+        response = app.test_client().post(
+            '/api/login',
+            input_stream=big,
+            headers={'Transfer-Encoding': 'chunked'},
+            content_type='application/json',
+            environ_overrides={'wsgi.input_terminated': True},  # what gunicorn sets for chunked bodies
+        )
+        self.assertEqual(response.status_code, 413)
+
+    def test_successful_sign_ins_do_not_exhaust_the_throttle(self):
+        email = self.owner.call('/api/me')[1]['user']['email']
+        env = {'REMOTE_ADDR': '198.51.100.' + str(len(uid()))}
+        statuses = {
+            Client().call('/api/login', {'email': email, 'password': 'a-long-safe-password'}, extra=env)[0]
+            for _ in range(60)
+        }
+        self.assertEqual(statuses, {200})
+
+    def test_origin_check_accepts_https_origin_behind_a_proxy(self):
+        same = {'HTTP_ORIGIN': 'https://feffel.example', 'HTTP_HOST': 'feffel.example'}
+        other = {'HTTP_ORIGIN': 'https://evil.example', 'HTTP_HOST': 'feffel.example'}
+        self.assertEqual(self.owner.call('/api/notifications/read', {}, extra=same)[0], 200)
+        self.assertEqual(self.owner.call('/api/notifications/read', {}, extra=other)[0], 403)
+
+    def test_undo_does_not_bring_back_an_archived_post(self):
+        self.single_stage_workflow()
+        p = self.post(assets=[self.upload()])
+        p = self.act(p, 'submit')[1]
+        p = self.act(p, 'decision', stage='final', action='approve')[1]
+        p = self.act(p, 'archive')[1]
+        self.assertEqual(p['status'], 'archived')
+        self.assertEqual(self.act(p, 'undo')[0], 409)
+        self.assertEqual(self.owner.call(f'/api/posts/{p["id"]}')[1]['status'], 'archived')
+
+    def test_wrong_typed_ids_are_bad_requests_not_server_errors(self):
+        p = self.post()
+        for value in ([], [1], {}, 2**70):
+            self.assertEqual(self.act(p, 'comment', body='x', version=value)[0], 400)
+            self.assertEqual(self.act(p, 'resolve', id=value)[0], 400)
+            self.assertEqual(self.owner.call('/api/admin/remove-member', {'id': value})[0], 400)
+            self.assertEqual(self.owner.call('/api/posts', {'company': value})[0], 400)
+
+    def test_invitation_accepts_a_missing_reporting_manager(self):
+        body = {'email': 'x-' + uid() + '@example.test', 'role': self.roles['Viewer'], 'reports_to': None}
+        self.assertEqual(self.owner.call('/api/admin/invite', body)[0], 201)

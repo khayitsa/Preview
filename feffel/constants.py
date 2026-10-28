@@ -6,6 +6,8 @@ Deployment settings (paths, URLs, limits that operators change) live in ``config
 SESSION_COOKIE = 'feffel_session'
 SESSION_SECONDS = 7 * 86400
 INVITE_SECONDS = 7 * 86400
+RESET_EMAIL_SECONDS = 3600  # a reset link that was emailed
+RESET_ADMIN_SECONDS = 86400  # a reset link an administrator hands over
 VERSION = '1.0.0'
 
 #: Content formats offered by each platform.

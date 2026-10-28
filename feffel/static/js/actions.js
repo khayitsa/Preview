@@ -260,6 +260,7 @@ async function handleAction(el) {
   if (a === 'account-edit') return accountDialog(el.dataset.company, el.dataset.platform);
   if (a === 'invite') return memberDialog();
   if (a === 'member-edit') return memberDialog(id);
+  if (a === 'member-reset') return resetLinkDialog(id);
   if (a === 'member-remove') {
     const m = S.data.members.find(x => x.id === id);
     modal(
@@ -286,7 +287,7 @@ async function handleAction(el) {
     const input = $('#invite-link');
     try {
       await navigator.clipboard.writeText(input.value);
-      toast('Invitation link copied.');
+      toast('Link copied.');
     } catch {
       input.select();
       toast('Select and copy the invitation link.');
@@ -324,7 +325,9 @@ document.addEventListener('click', e => {
   const el = e.target.closest('[data-action]');
   if (el) {
     e.preventDefault();
-    Promise.resolve(handleAction(el)).catch(err => toast(err.message));
+    Promise.resolve(handleAction(el)).catch(err =>
+      err.status === 401 && S.data ? sessionLost() : toast(err.message),
+    );
   }
 });
 document.addEventListener('dblclick', e => {
@@ -366,8 +369,9 @@ refreshTimer = setInterval(async () => {
       const y = scrollY;
       await load();
       scrollTo(0, y);
-    } catch {
-      /* a transient failure will retry on the next interval */
+    } catch (err) {
+      // A transient failure retries on the next interval; a lost session needs signing in again.
+      if (err.status === 401) sessionLost();
     }
   }
 }, 45000);

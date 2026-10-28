@@ -1,15 +1,17 @@
 """Accounts and sessions: sign-in, registration, invitation acceptance, ``/api/me``, sign-out."""
 
 import re
+import secrets
 import time
 
-from flask import Blueprint, g, request
+from flask import Blueprint, current_app, g, request
 
 from .. import constants
 from ..db import get_db
 from ..errors import require, textval
 from ..guards import json_body, signed_in
-from ..notifications import audit
+from .. import config
+from ..notifications import audit, queue_mail
 from ..security import password_hash, password_ok
 from ..sessions import load_session, start_session
 from ..util import dumps, now, sha256, uid
@@ -41,6 +43,12 @@ def throttle(db):
 # --- public endpoints -----------------------------------------------------------------------
 
 
+def forgive_attempt(db):
+    """A successful sign-in should not use up the allowance (shared networks share one address)."""
+    key = request.environ.get('REMOTE_ADDR', 'local')
+    db.execute('UPDATE rate_limits SET count=MAX(count-1,0) WHERE key=?', (key,))
+
+
 def _credentials():
     """Throttle, then read and validate the email and password from the request body."""
     throttle(get_db())
@@ -64,6 +72,7 @@ def login():
     # Derive a hash even for unknown addresses so response time does not reveal who has an account.
     valid = password_ok(password, user['password'] if user else password_hash('dummy-password-123'))
     require(user and valid, 'Email or password is incorrect', 401)
+    forgive_attempt(db)
     return start_session(db, user['id'])
 
 
@@ -98,6 +107,60 @@ def register():
     audit(db, org, user, 'Created organisation')
     db.commit()
     return start_session(db, user)
+
+
+def new_reset_token(db, user_id, seconds):
+    """Store a single-use reset token for ``user_id`` (replacing older ones) and return it."""
+    token = secrets.token_urlsafe(32)
+    db.execute('DELETE FROM password_resets WHERE user=?', (user_id,))
+    db.execute(
+        'INSERT INTO password_resets(id,user,token_hash,expires,used) VALUES(?,?,?,?,0)',
+        (uid(), user_id, sha256(token), time.time() + seconds),
+    )
+    return token
+
+
+@bp.post('/api/forgot-password')
+def forgot_password():
+    """Email a reset link. The answer is the same whether or not the address has an account."""
+    db = get_db()
+    throttle(db)
+    email = textval(json_body().get('email', ''), 254).lower()
+    require(EMAIL.fullmatch(email), 'Enter a valid email', 400)
+    deliverable = bool(current_app.config['PUBLIC_URL'] and config.smtp_configured())
+    user = db.execute('SELECT id FROM users WHERE email=?', (email,)).fetchone()
+    if user and deliverable:
+        db.execute('BEGIN IMMEDIATE')
+        token = new_reset_token(db, user['id'], constants.RESET_EMAIL_SECONDS)
+        queue_mail(
+            db,
+            email,
+            'Reset your Feffel password',
+            'Choose a new password using this link (valid for one hour). If you did not ask for this, '
+            'ignore this email.\n\n' + current_app.config['PUBLIC_URL'] + '/?reset=' + token,
+        )
+        db.commit()
+    return {'ok': True, 'email_available': deliverable}
+
+
+@bp.post('/api/reset-password')
+def reset_password():
+    """Set a new password with a single-use reset token bound to the account's email address."""
+    db = get_db()
+    body, email, password = _credentials()
+    token = textval(body.get('token', ''), 200)
+    db.execute('BEGIN IMMEDIATE')
+    row = db.execute(
+        'SELECT r.id,r.user FROM password_resets r JOIN users u ON u.id=r.user '
+        'WHERE r.token_hash=? AND r.used=0 AND r.expires>? AND u.email=?',
+        (sha256(token), time.time(), email),
+    ).fetchone()
+    require(row, 'This reset link is invalid, expired or for another email', 400)
+    db.execute('UPDATE users SET password=? WHERE id=?', (password_hash(password), row['user']))
+    db.execute('UPDATE password_resets SET used=1 WHERE id=?', (row['id'],))
+    db.execute('DELETE FROM sessions WHERE user=?', (row['user'],))  # sign out everywhere
+    db.commit()
+    return {'ok': True}
 
 
 @bp.post('/api/accept-invite')
@@ -160,7 +223,11 @@ def me():
     """Who is signed in, their organisations and the platform catalogue (works signed out)."""
     session = load_session(get_db())
     if not session:
-        return {'user': None, 'platforms': constants.PLATFORMS}
+        return {
+            'user': None,
+            'platforms': constants.PLATFORMS,
+            'email_available': bool(current_app.config['PUBLIC_URL'] and config.smtp_configured()),
+        }
     memberships = [
         dict(row)
         for row in get_db().execute(

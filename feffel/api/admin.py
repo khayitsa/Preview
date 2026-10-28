@@ -17,6 +17,7 @@ from ..db import get_db
 from ..errors import Error, require, textval
 from ..guards import json_body, org_member, require_permission
 from ..notifications import audit, queue_mail
+from .auth import new_reset_token
 from ..util import dumps, sha256, uid
 from ..workflow import validate_workflow
 
@@ -160,7 +161,8 @@ def _access_fields(body):
     for company_id in companies:
         require(_company_row(company_id), 'Unknown company', 400)
     require(all(p in constants.PLATFORMS for p in platforms), 'Unknown platform', 400)
-    reports_to = body.get('reports_to', '')
+    reports_to = body.get('reports_to') or ''
+    require(isinstance(reports_to, str), 'Unknown reporting manager', 400)
     fields = {
         'role': role_id,
         'companies': companies,
@@ -266,6 +268,29 @@ def invite(body):
     return {'token': token, 'email': email, 'expires_days': 7, 'link': link}, 201, []
 
 
+def reset_link(body):
+    """Create a one-day password reset link for a member, to hand over in person."""
+    db, org = get_db(), g.org
+    require_org_wide(g.member, 'Only organisation-wide administrators can reset passwords')
+    member = db.execute(
+        'SELECT m.user,u.email FROM members m JOIN users u ON u.id=m.user WHERE m.id=? AND m.org=?',
+        (body.get('id'), org),
+    ).fetchone()
+    require(member, 'Member not found', 404)
+    # An account that also belongs to another organisation is not this organisation's to take over.
+    elsewhere = db.execute(
+        'SELECT 1 FROM members WHERE user=? AND org!=?', (member['user'], org)
+    ).fetchone()
+    require(
+        not elsewhere,
+        'This person belongs to another organisation too. They can use "Forgot password" instead.',
+        409,
+    )
+    token = new_reset_token(db, member['user'], constants.RESET_ADMIN_SECONDS)
+    audit(db, org, g.user, 'Created password reset link', detail=member['email'])
+    return {'token': token, 'email': member['email'], 'expires_hours': 24}, 201, []
+
+
 def revoke_invite(body):
     """Withdraw an unused invitation so its link stops working."""
     db, org = get_db(), g.org
@@ -286,4 +311,5 @@ ACTIONS = {
     'member': member,
     'invite': invite,
     'revoke-invite': revoke_invite,
+    'reset-link': reset_link,
 }

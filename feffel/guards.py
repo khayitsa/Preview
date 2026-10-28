@@ -21,9 +21,21 @@ SAFE_METHODS = ('GET', 'HEAD')
 
 
 def read_body(max_bytes=constants.MAX_JSON_BYTES):
-    length = int(request.content_length or 0)
-    require(0 <= length <= max_bytes, 'Request too large', 413)
-    return request.get_data()
+    """The request body, refusing anything over ``max_bytes``.
+
+    The size is enforced while reading, not only from ``Content-Length``, because a chunked
+    request declares no length and would otherwise be read into memory without limit.
+    """
+    declared = request.content_length
+    require(declared is None or 0 <= declared <= max_bytes, 'Request too large', 413)
+    parts, total = [], 0
+    while True:
+        part = request.stream.read(min(1024 * 1024, max_bytes + 1 - total))
+        if not part:
+            return b''.join(parts)
+        parts.append(part)
+        total += len(part)
+        require(total <= max_bytes, 'Request too large', 413)
 
 
 def json_body():

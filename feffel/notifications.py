@@ -12,7 +12,7 @@ def audit(db, org, user, event, post=None, detail=''):
 
 
 def queue_mail(db, email, subject, body):
-    """Queue an email for ``manage.py send-mail``. Does nothing unless SMTP is configured."""
+    """Queue an email for ``flask --app wsgi send-mail``. Does nothing unless SMTP is configured."""
     if config.smtp_configured():
         db.execute(
             'INSERT INTO mail_outbox(id,recipient,subject,body,created) VALUES(?,?,?,?,?)',

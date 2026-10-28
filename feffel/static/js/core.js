@@ -106,8 +106,13 @@ async function api(path, body, method) {
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
+  // A proxy or gateway error can return HTML rather than JSON.
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const error = new Error(data.error || `Request failed (${res.status})`);
+    error.status = res.status;
+    throw error;
+  }
   return data;
 }
 function has(p) {
@@ -118,6 +123,13 @@ function company(id) {
 }
 function role(id) {
   return S.data?.roles.find(r => r.id === id);
+}
+// Mirrors the server's scope rule: an empty company or platform list means "everything".
+function canSeePost(member, post) {
+  return (
+    (!member.companies.length || member.companies.includes(post.company)) &&
+    (!member.platforms.length || member.platforms.includes(post.platform))
+  );
 }
 function memberName(id) {
   return S.data?.members.find(m => m.user === id)?.name || 'Unassigned';

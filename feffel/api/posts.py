@@ -258,6 +258,7 @@ def decision(post, body):
 
 def undo(post, body):
     db = get_db()
+    require(post['status'] in ['review', 'approved'], 'Nothing to undo on this post', 409)
     last = db.execute(
         'SELECT * FROM decisions WHERE post=? AND version=? ORDER BY rowid DESC LIMIT 1',
         (post['id'], post['version']),

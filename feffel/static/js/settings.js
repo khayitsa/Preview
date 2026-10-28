@@ -495,7 +495,7 @@ function memberDialog(id) {
         ? '<label class="row"><input name="send_email" type="checkbox"> Email this invitation</label>'
         : ''}
     </form>`,
-    `${m ? html`<button class="danger" data-action="member-remove" data-id="${m.id}">Remove access</button><span class="grow"></span>` : ''}<button data-action="close-modal">Cancel</button><button class="primary" form="member-form" type="submit">${m ? 'Save access' : 'Create invitation link'}</button>`,
+    `${m ? html`<button class="danger" data-action="member-remove" data-id="${m.id}">Remove access</button><button data-action="member-reset" data-id="${m.id}">Password reset link</button><span class="grow"></span>` : ''}<button data-action="close-modal">Cancel</button><button class="primary" form="member-form" type="submit">${m ? 'Save access' : 'Create invitation link'}</button>`,
   );
   $('#member-form').onsubmit = async e => {
     e.preventDefault();
@@ -539,6 +539,31 @@ function memberDialog(id) {
       toast(err.message);
     }
   };
+}
+async function resetLinkDialog(id) {
+  try {
+    const r = await api('/api/admin/reset-link', { id });
+    const link = new URL('/?reset=' + r.token, location.origin).href;
+    modal(
+      'Password reset link',
+      html`<p class="intro">
+          Give this link to <strong>${esc(r.email)}</strong>. It works once and expires in
+          ${r.expires_hours} hours. Opening it lets them choose a new password.
+        </p>
+        <label>Reset link</label
+        ><input id="invite-link" readonly value="${esc(link)}" /><button
+          style="margin-top:12px"
+          data-action="copy-invite"
+        >
+          Copy reset link
+        </button>
+        <p class="smalltext muted">
+          Share it privately. Anyone with the link and this email address can set the password.
+        </p>`,
+    );
+  } catch (err) {
+    toast(err.message);
+  }
 }
 function roleDialog(id) {
   const r = role(id);

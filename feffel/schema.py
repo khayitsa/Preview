@@ -71,6 +71,15 @@ TABLES = [
     )
     """,
     """
+    CREATE TABLE IF NOT EXISTS password_resets(
+        id TEXT PRIMARY KEY,
+        user TEXT NOT NULL REFERENCES users(id),
+        token_hash TEXT NOT NULL UNIQUE,
+        expires REAL NOT NULL,
+        used INTEGER NOT NULL DEFAULT 0
+    )
+    """,
+    """
     CREATE TABLE IF NOT EXISTS assets(
         id TEXT PRIMARY KEY,
         org TEXT NOT NULL REFERENCES orgs(id),

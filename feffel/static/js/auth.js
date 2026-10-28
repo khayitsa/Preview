@@ -3,6 +3,10 @@
 async function boot() {
   try {
     S.me = await api('/api/me');
+    if (new URLSearchParams(location.search).get('reset')) {
+      renderAuth('reset'); // a password reset link works whether or not anyone is signed in
+      return;
+    }
     if (!S.me.user) {
       renderAuth();
       return;
@@ -11,16 +15,36 @@ async function boot() {
       renderSignedInNotice();
       return;
     }
+    if (!S.me.organisations.length) {
+      renderStuck(
+        'You’re not part of an organisation',
+        `${S.me.user.email} isn’t a member of any organisation. An administrator may have removed your access. Ask for a new invitation, or sign out to use a different account.`,
+      );
+      return;
+    }
     if (!S.me.organisations.some(x => x.org === S.org)) S.org = S.me.organisations[0]?.org || '';
     preferences.setItem('feffel-org', S.org);
     await load();
   } catch (e) {
-    $('#app').innerHTML = html`<div class="empty-state">
-      <h2>Couldn’t connect to Feffel</h2>
-      <p>${esc(e.message)}</p>
-      <button data-action="retry">Try again</button>
-    </div>`;
+    renderStuck('Couldn’t connect to Feffel', e.message);
   }
+}
+// The server no longer recognises the session (expired, signed out elsewhere, server reset).
+function sessionLost() {
+  S.data = null;
+  S.me = null;
+  closeModal();
+  boot();
+  toast('You were signed out. Please sign in again.');
+}
+// A full-page message with a way out: retry, and sign out when someone is signed in.
+function renderStuck(title, message) {
+  $('#app').innerHTML = html`<div class="empty-state">
+    <h2>${esc(title)}</h2>
+    <p>${esc(message)}</p>
+    <button data-action="retry">Try again</button>
+    ${S.me?.user ? '<button class="ghost" data-action="logout">Sign out</button>' : ''}
+  </div>`;
 }
 async function load(quiet = false) {
   S.data = await api('/api/state');
@@ -66,9 +90,78 @@ function renderSignedInNotice() {
     </div>
   </div>`;
 }
+// "Forgot password" (asks for an emailed link) and the screen that link opens.
+function renderPasswordScreen(mode) {
+  const token = new URLSearchParams(location.search).get('reset');
+  const reset = mode === 'reset';
+  S.authMode = mode;
+  $('#app').innerHTML = html`<div class="auth-page">
+    ${authArt()}
+    <div class="auth-box">
+      <div class="row" style="margin-bottom:35px">
+        <span class="logoicon">f</span><span class="brandword">feffel<i>.</i></span>
+      </div>
+      <h2>${reset ? 'Choose a new password.' : 'Forgot your password?'}</h2>
+      <p class="intro">
+        ${reset
+          ? 'Enter the email this link was made for and a new password. You’ll be signed out everywhere else.'
+          : 'Enter your work email and we’ll send you a link to choose a new one.'}
+      </p>
+      <form id="auth-form">
+        <div id="auth-error"></div>
+        <label for="auth-email">Work email</label
+        ><input id="auth-email" name="email" type="email" required autocomplete="email" />
+        ${reset
+          ? html`<label for="auth-password">New password</label
+              ><input id="auth-password" name="password" type="password" minlength="12"
+                maxlength="256" required autocomplete="new-password" /><label
+                for="auth-confirm"
+                >Confirm new password</label
+              ><input id="auth-confirm" name="confirm" type="password" minlength="12"
+                maxlength="256" required autocomplete="new-password" />
+              <div class="required-note">At least 12 characters.</div>`
+          : ''}
+        <button class="primary" type="submit">${reset ? 'Set new password →' : 'Send reset link →'}</button>
+      </form>
+      <div class="auth-switch">
+        <button data-action="auth-mode" data-mode="login">Back to sign in</button>
+      </div>
+    </div>
+  </div>`;
+  $('#auth-form').onsubmit = async e => {
+    e.preventDefault();
+    const f = e.currentTarget;
+    const b = Object.fromEntries(new FormData(f));
+    if (reset && b.password !== b.confirm) {
+      $('#auth-error').innerHTML = html`<div class="error">The two passwords don’t match.</div>`;
+      return;
+    }
+    setBusy(f, true);
+    try {
+      if (reset) {
+        await api('/api/reset-password', { email: b.email, password: b.password, token });
+        history.replaceState({}, '', location.pathname);
+        S.authNotice = 'Password updated. Sign in with your new password.';
+        renderAuth('login');
+      } else {
+        await api('/api/forgot-password', { email: b.email });
+        f.innerHTML = html`<div class="notice">
+          ${S.me?.email_available
+            ? 'If there’s an account for that address, a reset link is on its way. It works for one hour.'
+            : 'This server can’t send email yet. Ask your organisation’s administrator for a password reset link.'}
+        </div>`;
+      }
+    } catch (err) {
+      $('#auth-error').innerHTML = html`<div class="error">${esc(err.message)}</div>`;
+    } finally {
+      if (f.isConnected) setBusy(f, false);
+    }
+  };
+}
 function renderAuth(mode) {
   const invite = new URLSearchParams(location.search).get('invite');
   mode = mode || (invite ? 'invite' : 'login');
+  if (mode === 'forgot' || mode === 'reset') return renderPasswordScreen(mode);
   S.authMode = mode;
   $('#app').innerHTML = html`<div class="auth-page">
     ${authArt()}
@@ -91,7 +184,9 @@ function renderAuth(mode) {
             : 'Create your organisation. Bring your whole team.'}
       </p>
       <form id="auth-form">
-        <div id="auth-error"></div>
+        <div id="auth-error">
+          ${mode === 'login' && S.authNotice ? html`<div class="notice">${esc(S.authNotice)}</div>` : ''}
+        </div>
         ${mode !== 'login'
           ? '<label for="auth-name">Your name</label><input id="auth-name" name="name" required maxlength="100" autocomplete="name">'
           : ''}${mode === 'register'
@@ -130,6 +225,11 @@ function renderAuth(mode) {
             </button>
           </div>`
         : ''}
+      ${mode === 'login'
+        ? html`<div class="auth-switch">
+            <button data-action="auth-mode" data-mode="forgot">Forgot your password?</button>
+          </div>`
+        : ''}
     </div>
   </div>`;
   $('#auth-form').onsubmit = async e => {
@@ -148,6 +248,7 @@ function renderAuth(mode) {
         b,
       );
       if (invite) history.replaceState({}, '', location.pathname);
+      S.authNotice = '';
       await boot();
     } catch (err) {
       $('#auth-error').innerHTML = html`<div class="error">${esc(err.message)}</div>`;
