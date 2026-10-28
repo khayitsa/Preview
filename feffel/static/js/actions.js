@@ -41,6 +41,10 @@ async function handleAction(el) {
   const a = el.dataset.action,
     id = el.dataset.id;
   if (a === 'retry') return boot();
+  if (a === 'dismiss-invite') {
+    history.replaceState({}, '', location.pathname);
+    return boot();
+  }
   if (a === 'auth-mode') return renderAuth(el.dataset.mode);
   if (a === 'nav') {
     S.nav = el.dataset.nav;

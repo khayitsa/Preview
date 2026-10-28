@@ -7,6 +7,10 @@ async function boot() {
       renderAuth();
       return;
     }
+    if (new URLSearchParams(location.search).get('invite')) {
+      renderSignedInNotice();
+      return;
+    }
     if (!S.me.organisations.some(x => x.org === S.org)) S.org = S.me.organisations[0]?.org || '';
     preferences.setItem('feffel-org', S.org);
     await load();
@@ -23,25 +27,51 @@ async function load(quiet = false) {
   if (S.company !== 'all' && !company(S.company)) S.company = 'all';
   if (!quiet) render();
 }
+// Left-hand brand panel shared by the sign-in, sign-up and invitation screens.
+function authArt() {
+  return html`<div class="auth-art">
+    <div class="row">
+      <span class="logoicon">f</span><span class="brandword">feffel<i>.</i></span>
+    </div>
+    <div>
+      <p>GOOD CONTENT DESERVES A BETTER PROCESS.</p>
+      <h1>Feels like a feed.<br />Works like <em>a team.</em></h1>
+      <p>
+        Your brands, your people, your next great post. One calm place to bring it all together.
+      </p>
+    </div>
+    <div class="row smalltext muted"><span>✦</span> A better place to review.</div>
+    <div class="orb"></div>
+  </div>`;
+}
+// An invitation link was opened while someone is already signed in: say so instead of silently
+// ignoring the invitation, and let them pick which account to use.
+function renderSignedInNotice() {
+  $('#app').innerHTML = html`<div class="auth-page">
+    ${authArt()}
+    <div class="auth-box">
+      <div class="row" style="margin-bottom:35px">
+        <span class="logoicon">f</span><span class="brandword">feffel<i>.</i></span>
+      </div>
+      <h2>You’re already signed in.</h2>
+      <p class="intro">
+        You’re signed in as <strong>${esc(S.me.user.name)}</strong> (${esc(S.me.user.email)}).
+        This invitation is for a specific email address — to accept it, sign out first and use
+        the account it was sent to.
+      </p>
+      <button class="primary" data-action="logout">Sign out and accept invitation →</button>
+      <div class="auth-switch">
+        <button data-action="dismiss-invite">Stay signed in and continue to Feffel</button>
+      </div>
+    </div>
+  </div>`;
+}
 function renderAuth(mode) {
   const invite = new URLSearchParams(location.search).get('invite');
   mode = mode || (invite ? 'invite' : 'login');
   S.authMode = mode;
   $('#app').innerHTML = html`<div class="auth-page">
-    <div class="auth-art">
-      <div class="row">
-        <span class="logoicon">f</span><span class="brandword">feffel<i>.</i></span>
-      </div>
-      <div>
-        <p>GOOD CONTENT DESERVES A BETTER PROCESS.</p>
-        <h1>Feels like a feed.<br />Works like <em>a team.</em></h1>
-        <p>
-          Your brands, your people, your next great post. One calm place to bring it all together.
-        </p>
-      </div>
-      <div class="row smalltext muted"><span>✦</span> A better place to review.</div>
-      <div class="orb"></div>
-    </div>
+    ${authArt()}
     <div class="auth-box">
       <div class="row" style="margin-bottom:35px">
         <span class="logoicon">f</span><span class="brandword">feffel<i>.</i></span>
