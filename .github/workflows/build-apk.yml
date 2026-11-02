@@ -15,6 +15,11 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+      # Use a Gradle installed by the runner, so a missing wrapper jar or lost "executable" flag
+      # (common when a project is committed from Windows) cannot break the build.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
       - name: Build debug APK
         working-directory: android
         env:
@@ -22,7 +27,7 @@ jobs:
           FEFFEL_URL: ${{ vars.FEFFEL_URL }}
         run: |
           test -n "$FEFFEL_URL" || { echo "Set the FEFFEL_URL repository variable (https://you.pythonanywhere.com)"; exit 1; }
-          ./gradlew --no-daemon assembleDebug -PfeffelUrl="$FEFFEL_URL"
+          gradle --no-daemon --stacktrace assembleDebug -PfeffelUrl="$FEFFEL_URL"
       - uses: actions/upload-artifact@v4
         with:
           name: Feffel-apk
