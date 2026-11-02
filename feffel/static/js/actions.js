@@ -330,11 +330,59 @@ document.addEventListener('click', e => {
     );
   }
 });
-document.addEventListener('dblclick', e => {
-  if (e.target.closest('button,video,iframe,canvas') || !e.target.closest('.media')) return;
-  const el = e.target.closest('[data-post-media]');
-  if (el?.dataset.scope === 'feed') approve(el.dataset.postMedia).catch(err => toast(err.message));
-});
+// Double-clicking (mouse) or double-tapping (touch) a post in the feed approves it, like liking on
+// Instagram. Phones rarely fire "dblclick", so taps are timed here; a swipe is not a tap.
+let lastApprovalAt = 0;
+function quickApproveFrom(target) {
+  if (target.closest('button,video,iframe,canvas') || !target.closest('.media')) return;
+  const el = target.closest('[data-post-media]');
+  if (el?.dataset.scope !== 'feed' || Date.now() - lastApprovalAt < 800) return;
+  lastApprovalAt = Date.now();
+  const post = S.data.posts.find(p => p.id === el.dataset.postMedia);
+  if (post?.stages.some(s => s.can_approve)) showHeart(el);
+  approve(el.dataset.postMedia).catch(err => toast(err.message));
+}
+function showHeart(media) {
+  // Lives on <body>, not inside the post: approving re-renders the feed and would wipe it.
+  const box = media.getBoundingClientRect();
+  const heart = document.createElement('span');
+  heart.className = 'heart-pop';
+  heart.textContent = '❤';
+  Object.assign(heart.style, { left: box.left + 'px', top: box.top + 'px', width: box.width + 'px', height: box.height + 'px' });
+  document.body.append(heart);
+  setTimeout(() => heart.remove(), 900);
+}
+document.addEventListener('dblclick', e => quickApproveFrom(e.target));
+let tapStart = null,
+  lastTap = { time: 0, media: null };
+document.addEventListener(
+  'touchstart',
+  e => {
+    const t = e.touches[0];
+    tapStart = e.touches.length === 1 ? { x: t.clientX, y: t.clientY } : null;
+  },
+  { passive: true },
+);
+document.addEventListener(
+  'touchend',
+  e => {
+    const t = e.changedTouches[0];
+    const media = e.target.closest?.('.media');
+    const isTap = tapStart && Math.hypot(t.clientX - tapStart.x, t.clientY - tapStart.y) < 12;
+    tapStart = null;
+    if (!media || !isTap) {
+      lastTap = { time: 0, media: null };
+      return;
+    }
+    if (lastTap.media === media && Date.now() - lastTap.time < 350) {
+      lastTap = { time: 0, media: null };
+      quickApproveFrom(e.target);
+    } else {
+      lastTap = { time: Date.now(), media };
+    }
+  },
+  { passive: true },
+);
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('.modal')) {
     closeModal();

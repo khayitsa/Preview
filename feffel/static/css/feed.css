@@ -394,3 +394,32 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Double-tap to approve: no zoom or text selection on the media, and a heart as feedback. */
+.media[data-post-media] {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.heart-pop {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 96px;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  animation: heart-pop 0.85s ease-out forwards;
+}
+@keyframes heart-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  25% { transform: scale(1.15); opacity: 1; }
+  60% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heart-pop { animation: none; opacity: 0.9; }
+}
