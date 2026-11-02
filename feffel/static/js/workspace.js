@@ -48,17 +48,18 @@ function render() {
       </div>
       <div class="nav-label">Workspace</div>
       ${[
-        ['workspace', '▦', 'Content studio'],
-        ['queue', '✓', 'My review queue'],
-        ['tasks', '☷', 'My tasks'],
-        ['approved', '↗', 'Ready to publish'],
+        ['workspace', '▦', 'Content studio', 'Studio'],
+        ['queue', '✓', 'My review queue', 'Review'],
+        ['tasks', '☷', 'My tasks', 'Tasks'],
+        ['approved', '↗', 'Ready to publish', 'Ready'],
       ]
         .map(
-          ([n, i, t]) =>
+          ([n, i, t, short]) =>
             html`<button
               class="nav-button ${S.nav === n ? 'active' : ''}"
               data-action="nav"
               data-nav="${n}"
+              data-short="${short}"
               title="${t}"
             >
               <span class="nav-icon">${i}</span><span>${t}</span>${n === 'queue' && pending
@@ -74,11 +75,17 @@ function render() {
             class="nav-button ${S.nav === 'settings' ? 'active' : ''}"
             data-action="nav"
             data-nav="settings"
+            data-short="Team"
             title="Companies and team"
           >
             <span class="nav-icon">⚙</span><span>Companies & team</span>
           </button>`
-        : ''}<button class="nav-button" data-action="notifications" title="Notifications">
+        : ''}<button
+        class="nav-button"
+        data-action="notifications"
+        data-short="Alerts"
+        title="Notifications"
+      >
         <span class="nav-icon">♧</span><span>Notifications</span>${unread
           ? html`<span class="count">${unread}</span>`
           : ''}
@@ -90,7 +97,7 @@ function render() {
             <strong class="smalltext">${esc(S.me.user.name)}</strong>
             <div class="tiny muted" style="margin-top:4px">${esc(role(d.member.role)?.name)}</div>
           </div>
-          <button class="ghost small" data-action="logout" title="Sign out">↪</button>
+          <button class="ghost small" data-action="logout" data-short="Exit" title="Sign out">↪</button>
         </div>
       </div>
     </aside>
@@ -105,7 +112,19 @@ function render() {
             approved: 'Ready to publish',
           }[S.nav] || 'Content workspace'}</strong>
         </div>
-        <div class="row">
+        ${S.me.organisations.length > 1
+          ? html`<select class="org-switch" id="org-select-m" aria-label="Organisation">
+              ${S.me.organisations
+                .map(
+                  o =>
+                    html`<option value="${o.org}" ${o.org === S.org ? 'selected' : ''}>
+                      ${esc(o.name)}
+                    </option>`,
+                )
+                .join('')}
+            </select>`
+          : ''}
+        <div class="row topbar-tools">
           <input
             class="search"
             id="search"
@@ -115,20 +134,23 @@ function render() {
           /><button class="ghost" data-action="theme" title="Toggle colour theme">
             ${S.theme === 'dark' ? '☀' : '☾'}</button
           >${has('create')
-            ? '<button class="primary" data-action="new-post">＋ Create post</button>'
+            ? '<button class="primary create-btn" data-action="new-post" aria-label="Create post"><span>＋</span><span class="create-label"> Create post</span></button>'
             : ''}
         </div>
       </header>
       <div class="page" id="page">${S.nav === 'settings' ? settingsPage() : workspacePage()}</div>
     </main>
   </div>`;
-  $('#org-select').onchange = async e => {
-    S.org = e.target.value;
-    S.company = 'all';
-    preferences.setItem('feffel-org', S.org);
-    closeModal();
-    await load();
-  };
+  $$('#org-select, #org-select-m').forEach(
+    select =>
+      (select.onchange = async e => {
+        S.org = e.target.value;
+        S.company = 'all';
+        preferences.setItem('feffel-org', S.org);
+        closeModal();
+        await load();
+      }),
+  );
   $('#search').oninput = e => {
     S.search = e.target.value;
     renderPage();
@@ -647,8 +669,32 @@ function calendarView(posts) {
           .join('')}
       </div>
     </div>
+    ${calendarAgenda(posts, month)}
     <p class="smalltext muted">
       ${posts.filter(p => !p.scheduled).length} posts have no planned date. Dates are for planning;
       Feffel does not publish posts.
     </p>`;
+}
+
+// Phones: the month grid is too narrow to read, so the same posts are also listed by date.
+function calendarAgenda(posts, month) {
+  const dated = posts
+    .filter(p => p.scheduled && new Date(p.scheduled).getMonth() === month)
+    .sort((a, b) => a.scheduled.localeCompare(b.scheduled));
+  if (!dated.length) return '';
+  return html`<div class="agenda">
+    ${dated
+      .map(
+        p => html`<button class="agenda-item" data-action="review" data-id="${p.id}">
+          <span class="agenda-date"
+            >${new Date(p.scheduled).toLocaleDateString(undefined, {
+              weekday: 'short',
+              day: 'numeric',
+            })}</span
+          >
+          <span class="agenda-title">${icons[p.platform]} ${esc(p.title || p.caption.slice(0, 40) || p.format)}</span>
+        </button>`,
+      )
+      .join('')}
+  </div>`;
 }

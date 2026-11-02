@@ -1,0 +1,390 @@
+/* Phone layout: bottom tab bar, compact top bar, edge-to-edge feed, bottom-sheet dialogs.
+   Loaded last so it can override the desktop and tablet rules. */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+.agenda {
+  display: none;
+}
+.org-switch {
+  display: none;
+}
+/* Fingers need bigger targets than mice. */
+@media (pointer: coarse) {
+  button {
+    min-height: 40px;
+  }
+  button.small,
+  .view-tabs button,
+  .annotation-toolbar button,
+  .comment-actions button,
+  .upload-item button {
+    min-height: 36px;
+  }
+  .reaction {
+    min-width: 40px;
+  }
+  .slide-controls button {
+    width: 38px;
+    height: 38px;
+  }
+  input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+  }
+}
+@media (max-width: 700px) {
+  /* Inputs under 16px make iPhones zoom the page when focused. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  .app-layout {
+    display: block;
+  }
+  .main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  /* Sidebar becomes a bottom tab bar. */
+  .sidebar {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 18px #1c163a10;
+    z-index: 30;
+  }
+  .sidebar > .row,
+  .sidebar > .workspace,
+  .sidebar > .nav-label,
+  .sidebar > div[style],
+  .sidebar-bottom .avatar,
+  .sidebar-bottom .user-details {
+    display: none;
+  }
+  .sidebar .nav-button,
+  .sidebar-bottom button {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    margin: 0;
+    padding: 6px 2px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    min-height: 52px;
+  }
+  .sidebar .nav-button::after,
+  .sidebar-bottom button::after {
+    content: attr(data-short);
+  }
+  .sidebar .nav-icon {
+    width: auto;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .sidebar .nav-button .count {
+    position: absolute;
+    top: 2px;
+    left: calc(50% + 6px);
+    margin: 0;
+    min-width: 16px;
+    padding: 2px 4px;
+    font-size: 9px;
+    text-align: center;
+  }
+  .sidebar-bottom {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .sidebar-bottom > .row {
+    flex: 1;
+  }
+  .sidebar-bottom button {
+    width: 100%;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: 10px;
+  }
+  .sidebar-bottom button::before {
+    content: '↪';
+    font-size: 20px;
+    line-height: 1;
+  }
+  .sidebar-bottom button {
+    font-size: 0;
+  }
+  .sidebar-bottom button::after {
+    font-size: 10px;
+  }
+
+  /* Top bar: search grows, actions shrink to icons. */
+  .topbar {
+    height: auto;
+    min-height: 58px;
+    padding: 8px 12px;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 15;
+  }
+  .topbar-tools {
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+  }
+  .topbar .search {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+  .topbar .create-label {
+    display: none;
+  }
+  .create-btn {
+    padding: 10px 14px;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .org-switch {
+    display: block;
+    width: auto;
+    max-width: 120px;
+    padding: 9px 8px;
+    font-size: 13px;
+  }
+
+  .page {
+    padding: 16px 14px 24px;
+  }
+  .page-title {
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .page > .row.spread > .pill {
+    display: none;
+  }
+  .metrics {
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .metric {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .metric strong {
+    font-size: 20px;
+    margin-top: 4px;
+  }
+  .metric-dot {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    border-radius: 9px;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 14px 0;
+  }
+  .controls select {
+    width: 100%;
+  }
+  .view-tabs {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .view-tabs button {
+    flex: 1;
+    padding: 8px 4px;
+  }
+  .platform-tabs {
+    margin: 0 -14px;
+    padding: 0 14px 12px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .platform-tab {
+    flex-shrink: 0;
+  }
+  .platform-tab.active span:last-child {
+    display: inline;
+  }
+
+  /* Feed runs edge to edge, like the real apps. */
+  .feed {
+    gap: 14px;
+  }
+  .feed .post {
+    margin-inline: -14px;
+    border-radius: 0;
+    border-inline: 0;
+  }
+  .post-footer .row {
+    flex-wrap: wrap;
+  }
+  .post-footer button {
+    flex: 1 1 auto;
+  }
+  .caption {
+    font-size: 14px;
+  }
+
+  /* Calendar: dots in the grid, readable list underneath. */
+  .calendar-header {
+    padding: 12px;
+  }
+  .calendar-day {
+    min-height: 54px;
+    padding: 4px 2px;
+    text-align: center;
+  }
+  .calendar-day.weekday {
+    min-height: 30px;
+    padding: 8px 0;
+  }
+  .calendar-item {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    min-height: 0;
+    padding: 0;
+    margin: 4px 1px 0;
+    border-radius: 50%;
+    background: var(--purple);
+    font-size: 0;
+  }
+  .agenda {
+    display: grid;
+    gap: 6px;
+    margin: 14px 0;
+  }
+  .agenda-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    text-align: left;
+    padding: 12px;
+    font-size: 13px;
+  }
+  .agenda-date {
+    flex: 0 0 52px;
+    font-weight: 700;
+    color: var(--purple);
+    font-size: 12px;
+  }
+  .agenda-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Settings. */
+  .settings-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    margin: 16px -14px;
+    padding: 0 14px 4px;
+    scrollbar-width: none;
+  }
+  .settings-tabs button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .settings-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .settings-card .row.spread {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+  .table thead {
+    display: none;
+  }
+  .table tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .table td,
+  .table td:first-child {
+    border: 0;
+    padding: 3px 0;
+  }
+  .table td:last-child {
+    padding-top: 8px;
+  }
+
+  /* Dialogs become bottom sheets. */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal,
+  .modal.wide {
+    width: 100%;
+    max-width: 100%;
+    max-height: 94vh;
+    max-height: 94dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+  }
+  .modal-header {
+    padding: 14px 16px;
+  }
+  .modal-body {
+    padding: 16px;
+  }
+  .modal-footer {
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    flex-wrap: wrap;
+  }
+  .modal-footer button {
+    flex: 1 1 auto;
+  }
+  .comment.reply {
+    margin-left: 12px;
+  }
+
+  #toast {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 0.2s,
+      opacity 0.2s;
+  }
+  #toast.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .auth-box {
+    padding: 32px 20px;
+  }
+}
