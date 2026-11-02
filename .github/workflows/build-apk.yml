@@ -14,7 +14,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      # GitHub's runner already has the Android SDK. (The android-actions/setup-android action
+      # currently crashes on it, so we only record the licence acceptance Gradle needs.)
+      - name: Accept Android SDK licences
+        run: |
+          mkdir -p "$ANDROID_HOME/licenses"
+          printf '\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n' > "$ANDROID_HOME/licenses/android-sdk-license"
       # Use a Gradle installed by the runner, so a missing wrapper jar or lost "executable" flag
       # (common when a project is committed from Windows) cannot break the build.
       - uses: gradle/actions/setup-gradle@v4
